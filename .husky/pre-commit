@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Run ESLint autofix on staged files before commit
+npx --no-install lint-staged

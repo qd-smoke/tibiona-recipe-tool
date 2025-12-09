@@ -1,0 +1,39 @@
+# PowerShell Functions & Aliases - tool.tibiona.it
+
+Questo progetto utilizza funzioni PowerShell personalizzate definite in `C:\Users\aldo\Documents\PowerShell\aliases.ps1`.
+
+## Funzioni Server disponibili:
+
+### Server Operations (tool.tibiona.it)
+- `serverget <remoteFile> <localPath>` - Scarica file dal server
+- `serverput <localFile> <remotePath>` - Carica file locale sul server
+- `serverls [remoteDir]` - Lista file sul server
+- `serverclone <localDir>` - Duplica cartella locale/remota
+- `sendfile <file>` - Invia file rispettando path relativo a tool.tibiona.it
+- `serverpush [-All]` - Carica solo i file modificati dopo l'ultimo upload o tutti con -all. Esegue sempre backup remoto in /backups/ e pulizia cache via _purge.php
+- `serverssh [cmd]` - Connessione SSH diretta a public_html
+
+### Cloudflare Functions
+- `cfget <Url>` - GET con Cloudflare Access
+- `cfhead <Url>` - HEAD con Cloudflare Access
+- `cfpurge <Url>` - POST purge con Cloudflare Access
+- `clearcache` - Pulisce la cache del sito tool.tibiona.it (chiama https://tool.tibiona.it/_purge.php)
+
+### Aldobongiovanni.com Functions
+- `aldossh` - Connessione SSH ad aldobongiovanni.com
+- `aldopush <file1> [file2] ...` - Carica file specifici su aldobongiovanni.com
+- `fiassh_aldobongiovanni` - Upload SSH completo per aldobongiovanni.com
+
+### Utility Functions
+- `mvprogetto` - Vai a C:\progetti\tool.tibiona.it
+- `composer` - Alias per Composer (PHP)
+- `php` - Alias per PHP
+
+## Note importanti:
+- Le funzioni sono caricate automaticamente dal profilo PowerShell
+- Il server principale è: it38.siteground.eu (porta 18765)
+- Le chiavi SSH sono in: C:\Users\aldo\.ssh\
+- Il percorso del progetto è: C:\progetti\tool.tibiona.it
+
+Quando suggerisci comandi PowerShell o script, usa queste funzioni quando appropriate invece di riscrivere la logica.
+

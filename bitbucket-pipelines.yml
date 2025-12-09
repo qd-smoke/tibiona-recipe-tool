@@ -1,0 +1,34 @@
+image: atlassian/default-image:latest
+
+pipelines:
+  default:
+    - step:
+        name: Mirror to GitHub (Historyless)
+        script:
+          - set -e
+          - apt-get update
+          - apt-get install -y git openssh-client
+
+          # Setup SSH key for GitHub
+          - mkdir -p ~/.ssh
+          - (umask 077; echo "$MIRROR_SSH_KEY" > ~/.ssh/id_ed25519)
+          - ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          # Configure git
+          - git config --global user.email "pipeline@bitbucket.org"
+          - git config --global user.name "Bitbucket Pipeline"
+
+          # Remove the existing git history
+          - rm -rf .git
+
+          # Initialize a fresh repo with 1 clean commit
+          - git init
+          - git add .
+          - git commit -m "Initial import (squashed history)"
+          - git branch -M main
+
+          # Add GitHub remote
+          - git remote add github git@github.com:qd-smoke/tibiona-recipe-tool.git
+
+          # Overwrite GitHub repo with the single-commit version
+          - git push github main --force

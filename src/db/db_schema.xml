@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="dddev_recipe" resource="default" engine="innodb" comment="Recipe Information">
+        <!-- Base recipe information -->
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="Recipe Name"/>
+        <column xsi:type="text" name="notes" nullable="true" comment="Notes"/>
+        <column xsi:type="decimal" name="total_qty_for_recipe" precision="12" scale="2" nullable="true" comment="Total Ingredient quantity required for recipe (g)"/>
+        <column xsi:type="decimal" name="waste_percent" precision="12" scale="2" nullable="true" comment="Waste %"/>
+        <column xsi:type="decimal" name="water_percent" precision="12" scale="2" nullable="true" comment="Water %"/>
+        <column xsi:type="decimal" name="package_weight" precision="12" scale="2" nullable="true" comment="The weight of 1 package of product"/>
+        <column xsi:type="int" name="number_of_packages" unsigned="true" nullable="true" comment="Number of product packages"/>
+
+        <!-- Cooking information columns -->
+        <column xsi:type="decimal" name="time_minutes" precision="12" scale="2" nullable="true" comment="Cooking Time in Minutes"/>
+        <column xsi:type="decimal" name="temperature_celsius" precision="12" scale="2" nullable="true" comment="Cooking Temperature in Celsius"/>
+        <column xsi:type="decimal" name="height_cm" precision="12" scale="2" nullable="true" comment="Height in cm"/>
+        <column xsi:type="decimal" name="width_cm" precision="12" scale="2" nullable="true" comment="Width in cm"/>
+        <column xsi:type="decimal" name="length_cm" precision="12" scale="2" nullable="true" comment="Length in cm"/>
+
+        <!-- Created/Updated time -->
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+    </table>
+
+    <table name="dddev_recipe_ingredient" resource="default" engine="innodb" comment="Recipe Ingredients">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Ingredient Autoincrement ID"/>
+        <column xsi:type="int" name="recipe_id" unsigned="true" nullable="false" comment="Recipe ID"/>
+        <column xsi:type="varchar" name="sku" nullable="false" length="100" comment="Ingredient SKU"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="Ingredient Name"/>
+        <column xsi:type="decimal" name="qty_original" precision="12" scale="2" nullable="false" comment="Original Quantity ? (g)"/>
+        <column xsi:type="decimal" name="price_cost_per_kg" precision="12" scale="2" nullable="false" comment="Price cost per kg of ingredient"/>
+        <column xsi:type="boolean" name="is_powder_ingredient" nullable="false" default="false" comment="Used for calculating 'Solo Polveri - C21'"/>
+
+        <!-- Nutrition values -->
+        <column xsi:type="decimal" name="kcal" precision="12" scale="2" nullable="true" comment="Kcal (kcal)"/>
+        <column xsi:type="decimal" name="kj" precision="12" scale="2" nullable="true" comment="Kj (kj)"/>
+        <column xsi:type="decimal" name="protein" precision="12" scale="2" nullable="true" comment="Protein | Proteine (g)"/>
+        <column xsi:type="decimal" name="carbo" precision="12" scale="2" nullable="true" comment="Carbohydrates | Carboidrati (g)"/>
+        <column xsi:type="decimal" name="sugar" precision="12" scale="2" nullable="true" comment="Sugar | di cui Zuccheri (g)"/>
+        <column xsi:type="decimal" name="fat" precision="12" scale="2" nullable="true" comment="Fat | Grassi (g)"/>
+        <column xsi:type="decimal" name="saturi" precision="12" scale="2" nullable="true" comment="Saturated Fat | di cui Saturi (g)"/>
+        <column xsi:type="decimal" name="fiber" precision="12" scale="2" nullable="true" comment="Fiber | Fibre (g)"/>
+        <column xsi:type="decimal" name="salt" precision="12" scale="2" nullable="true" comment="Salt | Sale (g)"/>
+        <column xsi:type="decimal" name="polioli" precision="12" scale="2" nullable="true" comment="Polioli ? | di cui Polioli (g)"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="RECIPE_INGREDIENT_RECIPE_ID_FK" table="dddev_recipe_ingredient" column="recipe_id" referenceTable="dddev_recipe" referenceColumn="id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="dddev_recipe_version" resource="default" engine="innodb" comment="Recipe Versions">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="recipe_id" unsigned="true" nullable="false" comment="Recipe ID"/>
+        <column xsi:type="int" name="version_number" nullable="false" comment="Version Number"/>
+        <column xsi:type="int" name="created_by_user_id" unsigned="true" nullable="false" comment="User ID who created this version"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="longtext" name="recipe_snapshot" nullable="false" comment="Recipe snapshot JSON"/>
+        <column xsi:type="longtext" name="ingredients_snapshot" nullable="false" comment="Ingredients snapshot JSON"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="RECIPE_VERSION_RECIPE_ID_FK" table="dddev_recipe_version" column="recipe_id" referenceTable="dddev_recipe" referenceColumn="id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="RECIPE_VERSION_USER_ID_FK" table="dddev_recipe_version" column="created_by_user_id" referenceTable="app_permissions" referenceColumn="id" onDelete="RESTRICT"/>
+    </table>
+
+    <table name="dddev_production" resource="default" engine="innodb" comment="Production Tracking">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="recipe_id" unsigned="true" nullable="false" comment="Recipe ID"/>
+        <column xsi:type="int" name="recipe_version_id" unsigned="true" nullable="true" comment="Recipe Version ID used"/>
+        <column xsi:type="int" name="user_id" unsigned="true" nullable="false" comment="User ID who started production"/>
+        <column xsi:type="varchar" name="production_lot" nullable="false" length="255" comment="Production Lot"/>
+        <column xsi:type="timestamp" name="started_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Production Start Time"/>
+        <column xsi:type="timestamp" name="finished_at" nullable="true" comment="Production Finish Time"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="20" default="'in_progress'" comment="Status: in_progress, completed, cancelled"/>
+        <column xsi:type="text" name="notes" nullable="true" comment="Notes"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PRODUCTION_RECIPE_ID_FK" table="dddev_production" column="recipe_id" referenceTable="dddev_recipe" referenceColumn="id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PRODUCTION_RECIPE_VERSION_ID_FK" table="dddev_production" column="recipe_version_id" referenceTable="dddev_recipe_version" referenceColumn="id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="PRODUCTION_USER_ID_FK" table="dddev_production" column="user_id" referenceTable="app_permissions" referenceColumn="id" onDelete="RESTRICT"/>
+    </table>
+
+    <table name="dddev_recipe_history" resource="default" engine="innodb" comment="Recipe Change History">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="recipe_id" unsigned="true" nullable="false" comment="Recipe ID"/>
+        <column xsi:type="int" name="recipe_version_id" unsigned="true" nullable="true" comment="Recipe Version ID"/>
+        <column xsi:type="int" name="production_id" unsigned="true" nullable="true" comment="Production ID if change during production"/>
+        <column xsi:type="int" name="user_id" unsigned="true" nullable="false" comment="User ID who made the change"/>
+        <column xsi:type="varchar" name="change_type" nullable="false" length="20" comment="Change Type: production, admin, version_created"/>
+        <column xsi:type="varchar" name="field_name" nullable="true" length="255" comment="Field Name that was changed"/>
+        <column xsi:type="text" name="old_value" nullable="true" comment="Old Value"/>
+        <column xsi:type="text" name="new_value" nullable="true" comment="New Value"/>
+        <column xsi:type="text" name="change_description" nullable="false" comment="Change Description"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="RECIPE_HISTORY_RECIPE_ID_FK" table="dddev_recipe_history" column="recipe_id" referenceTable="dddev_recipe" referenceColumn="id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="RECIPE_HISTORY_RECIPE_VERSION_ID_FK" table="dddev_recipe_history" column="recipe_version_id" referenceTable="dddev_recipe_version" referenceColumn="id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="RECIPE_HISTORY_PRODUCTION_ID_FK" table="dddev_recipe_history" column="production_id" referenceTable="dddev_production" referenceColumn="id" onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="RECIPE_HISTORY_USER_ID_FK" table="dddev_recipe_history" column="user_id" referenceTable="app_permissions" referenceColumn="id" onDelete="RESTRICT"/>
+    </table>
+
+    <table name="dddev_production_ingredient" resource="default" engine="innodb" comment="Production Ingredient Overrides">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="production_id" unsigned="true" nullable="false" comment="Production ID"/>
+        <column xsi:type="int" name="ingredient_id" unsigned="true" nullable="false" comment="Ingredient ID"/>
+        <column xsi:type="varchar" name="lot" nullable="true" length="255" comment="Ingredient Lot for this production"/>
+        <column xsi:type="varchar" name="product_name_override" nullable="true" length="255" comment="Product Name Override"/>
+        <column xsi:type="varchar" name="mp_sku_override" nullable="true" length="100" comment="Magento SKU Override"/>
+        <column xsi:type="varchar" name="supplier_override" nullable="true" length="255" comment="Supplier Override"/>
+        <column xsi:type="varchar" name="warehouse_location_override" nullable="true" length="255" comment="Warehouse Location Override"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="PRODUCTION_INGREDIENT_PRODUCTION_ID_FK" table="dddev_production_ingredient" column="production_id" referenceTable="dddev_production" referenceColumn="id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="PRODUCTION_INGREDIENT_INGREDIENT_ID_FK" table="dddev_production_ingredient" column="ingredient_id" referenceTable="dddev_recipe_ingredient" referenceColumn="id" onDelete="CASCADE"/>
+    </table>
+</schema>

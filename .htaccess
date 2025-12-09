@@ -1,0 +1,58 @@
+# =========================
+# .htaccess - Blocca bot; /view-source-dynamic.php richiede token
+# =========================
+
+# NOTE (2025-10-06):
+# - Consentiamo embed in modal/iframe per EmailRX/SupplyRX, quindi non usiamo
+#   X-Frame-Options: DENY. Se serve restringere, preferire CSP frame-ancestors
+#   (es.: frame-ancestors 'self' https://tool.tibiona.it https://<host-emailrx> ).
+# - Blocchiamo solo i principali crawler dei motori di ricerca per evitare
+#   indicizzazione non desiderata; lasciamo passare strumenti interni e OpenAI.
+# - Se un CDN/WAF (Cloudflare) sovrascrive header, adeguare le regole per i path.
+
+# NOTE (2025-10-06):
+# - Abbiamo rimosso X-Frame-Options: DENY per consentire l'embed in modal/iframe
+#   usati da EmailRX/SupplyRX. Se serve restringere gli embed in futuro, usare
+#   Content-Security-Policy con frame-ancestors indicando i domini consentiti
+#   (es.: frame-ancestors 'self' https://tool.tibiona.it https://<host-emailrx> ).
+# - Il blocco bot è volutamente minimale: blocchiamo solo i principali motori
+#   di ricerca per evitare indicizzazione. NON blocchiamo curl/requests/OpenAI,
+#   perché vengono usati da strumenti legittimi dell'applicazione.
+# - Se un proxy/CDN (es. Cloudflare) reinserisce X-Frame-Options o altre header,
+#   configurare Page Rules/WAF per non aggiungerle su questi percorsi.
+
+<IfModule mod_headers.c>
+  Header always set Cache-Control "no-cache, private"
+  Header always set X-Robots-Tag "noindex, nofollow, nosnippet, noarchive, noimageindex"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+AddHandler application/x-httpd-php73 .php .php5 .php4 .php3
+
+RewriteEngine On
+
+# -------------------------
+# /view-source-dynamic.php: richiede sempre il token nella query string
+# Sostituisci il token se vuoi cambiarlo
+# -------------------------
+RewriteCond %{REQUEST_URI} ^/view-source-dynamic\.php$ [NC]
+RewriteCond %{QUERY_STRING} (^|&)token=68e0e694-9b44-832d-8d13-56f8f62e0a29TEE3elpYd0VJUT09(&|$) [NC]
+RewriteRule ^ - [L]
+
+# Se la richiesta è per /view-source-dynamic.php ma NON ha il token -> 403
+RewriteCond %{REQUEST_URI} ^/view-source-dynamic\.php$ [NC]
+RewriteRule ^ - [F,L]
+
+# -------------------------
+# Blocca solo i principali motori di ricerca (consenti tutto il resto, compreso OpenAI)
+# -------------------------
+RewriteCond %{HTTP_USER_AGENT} (googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|bingpreview) [NC]
+RewriteRule ^ - [F,L]
+
+# -------------------------
+# Protezione file sensibili
+# -------------------------
+<FilesMatch "\.(log|ini|bak|config|dist|fla|inc|psd|sh|sql|swp|composer.*)$">
+  Require all denied
+</FilesMatch>
